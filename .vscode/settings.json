@@ -1,0 +1,9 @@
+{
+    "idf.portWin": "COM3",
+    "files.associations": {
+        "new": "cpp",
+        "cmath": "cpp",
+        "string": "cpp"
+    },
+    "idf.port": "/dev/ttyUSB0"
+}
