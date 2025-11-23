@@ -20,7 +20,7 @@ public:
     
     // Non-blocking Operation Functions
     void startRotation(float rotations, int rpm);
-    void startCalibrationRotation(int direction);
+    void startCalibrationRotation(int direction, int rpm);
     long stopCalibrationRotation();
     void updateRotation();
 
@@ -32,10 +32,13 @@ public:
     String getTMCStatusReport();
     // SETTERS
     void setMicrostepping(uint16_t ms);
-private:
-    TMC2209() {}
+
     TMC2209(const TMC2209&) = delete;
     void operator=(const TMC2209&) = delete;
+private:
+    TMC2209() = default;   // Only singleton constructor
+    ~TMC2209() = default;  // prevent external destruction
+    
 
     // Private functions
     void enableMotor(bool on);

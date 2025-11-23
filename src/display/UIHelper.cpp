@@ -36,3 +36,7 @@ void UIHelper::drawHeader(const char* title) {
     DisplayManager::getInstance().drawHLine(0, 15, 128);
     drawMessage(title, 0, 12);
 }
+
+void UIHelper::render() {
+    DisplayManager::getInstance().sendBuffer();
+}

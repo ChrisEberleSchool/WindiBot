@@ -163,7 +163,7 @@ void TMC2209::startRotation(float rotations, int rpm) {
     nextStepTime = micros();
 }
 void TMC2209::updateRotation() {
-    if (!rotating) return;
+    if (!rotating && !calibrating) return;
 
     unsigned long now = micros();
     if (now >= nextStepTime) {
@@ -171,25 +171,38 @@ void TMC2209::updateRotation() {
         digitalWrite(TMC_STP_PIN, LOW);
         nextStepTime = now + stepDelayUs;
 
-        stepsRemaining--;
-        if (stepsRemaining <= 0) {
-            rotating = false;
-            enableMotor(false);
+        if (rotating) {
+            stepsRemaining--;
+            if (stepsRemaining <= 0) {
+                rotating = false;
+                enableMotor(false);
+            }
+        }
+
+        if (calibrating) {
+            calibrationSteps++;
         }
     }
 }
 
-void TMC2209::startCalibrationRotation(int direction) {
-    if (direction == 0) return;
+
+void TMC2209::startCalibrationRotation(int direction, int rpm) {
+    if (direction == 0 || rpm <= 0) return;
 
     calibrationDir = (direction > 0) ? 1 : -1;
     digitalWrite(TMC_DIR_PIN, (calibrationDir > 0) ? HIGH : LOW);
 
+    // Steps per second based on RPM
+    long stepsPerRev = lround(STEPS_PER_REVOLUTION * microsteps * GEAR_RATIO);
+    float stepsPerSecond = stepsPerRev * (rpm / 60.0f);
+    stepDelayUs = lround(1000000.0f / stepsPerSecond);
+
     calibrationSteps = 0;
     calibrating = true;
     enableMotor(true);
-    nextStepTime = micros(); // use same timing as startRotation
+    nextStepTime = micros();
 }
+
 
 long TMC2209::stopCalibrationRotation() {
     calibrating = false;

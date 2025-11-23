@@ -1,17 +1,28 @@
 #ifndef ISCREEN_H
 #define ISCREEN_H
 
-class DisplayManager;
+#include <functional>
 
 class IScreen {
 public:
     virtual ~IScreen() = default;
 
-    // Draw the screen using DisplayManager
-    virtual void draw() = 0;
 
-    // Optional update logic
+    virtual void draw() = 0;
     virtual void update() {}
+
+    // Handle Encoder Inputs
+    virtual void onRotation(int rot) {}
+    virtual void onButtonPress() {}
+
+    // Screen change callback
+    using ChangeScreenCallback = std::function<void(int)>;
+
+    void setChangeCallback(ChangeScreenCallback cb) {
+        changeScreen = cb;
+    }
+protected:
+    ChangeScreenCallback changeScreen;
 };
 
 #endif

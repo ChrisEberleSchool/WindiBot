@@ -19,6 +19,13 @@ public:
         sprintf(buf, "Inside Temp: %.1f C", temp);
         UIHelper::getInstance().drawMessage(buf, 0, 30);
     }
+
+    void onRotation(int rot) override {
+    }   
+
+    void onButtonPress() override {
+        changeScreen(0); 
+    }
 private:
 };
 

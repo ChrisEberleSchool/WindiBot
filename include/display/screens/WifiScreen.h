@@ -33,6 +33,13 @@ public:
         UIHelper::getInstance().drawMessage("Please Connect to:",0,30);
         UIHelper::getInstance().drawMessage(wifi.portalName,0,45);
     }
+
+    void onRotation(int rot) override {
+    }   
+
+    void onButtonPress() override {
+        changeScreen(0); 
+    }
 private:
 };
 

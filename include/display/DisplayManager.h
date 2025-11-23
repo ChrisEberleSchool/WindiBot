@@ -6,7 +6,6 @@
 
 class IScreen;
 
-
 class DisplayManager {
 public:
     static DisplayManager& getInstance() {
@@ -30,20 +29,16 @@ public:
         return (millis() - lastActivityTime) >= timeoutMs;
     }
 
-    void drawMemoryInfo();
-
-    void drawMainMenu(int menuIndex);
-    void drawSensorScreen(float temperature);
-    void drawLocationScreen(const char* city);
     void drawMessage(const char* msg);
+
+    // Clearing & Rendering Screen
+    void clearBuffer();
+    void sendBuffer();
 private:
     DisplayManager() = default;
     unsigned long lastActivityTime = 0;
     bool isSleeping = false;
-    unsigned long timeTillSleep = 15000;
-
-    void clearBuffer();
-    void sendBuffer();
+    unsigned long timeTillSleep = 15000;    
 };
 
 #endif
