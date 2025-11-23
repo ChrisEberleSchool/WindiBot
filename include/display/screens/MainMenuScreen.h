@@ -9,12 +9,13 @@ class MainMenuScreen : public IScreen {
 public:
     MainMenuScreen()
     {
-        menuItems[0] = "Sensors";
-        menuItems[1] = "Wifi";
-        menuItems[2] = "Calibration";
-        menuItems[3] = "Location";
-        menuItems[4] = "Memory";
-        itemCount = 5;
+        menuItems[0] = "Operation Mode";
+        menuItems[1] = "Sensors";
+        menuItems[2] = "Wifi";
+        menuItems[3] = "Calibration";
+        menuItems[4] = "Location";
+        menuItems[5] = "Memory";
+        itemCount = 6;
     }
 
     void draw() override {
@@ -39,11 +40,12 @@ public:
 
     void onButtonPress() override {
         switch(selectedIndex) {
-            case 0: changeScreen(1); break; // sensors
-            case 1: changeScreen(2); break; // wifi
-            case 2: changeScreen(3); break; // calibration
-            case 3: changeScreen(4); break; // location
-            case 4: changeScreen(5); break; // memory
+            case 0: changeScreen(1); break; // Operation Mode
+            case 1: changeScreen(2); break; // sensors
+            case 2: changeScreen(3); break; // wifi
+            case 3: changeScreen(4); break; // calibration
+            case 4: changeScreen(5); break; // location
+            case 5: changeScreen(6); break; // memory
         }
     }
 

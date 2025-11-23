@@ -5,6 +5,7 @@
 #include <display/IScreen.h>
 #include <display/DisplayManager.h>
 #include <display/UIHelper.h>
+#include <WeatherControl.h>
 class MenuManager;
 
 
@@ -28,6 +29,14 @@ public:
             ui.drawMessage("Calibrating...",0,30);
             ui.drawMessage("Motor Turning CCW", 0, 45);
             ui.drawMessage("Press to stop", 0, 60);
+        }
+        else if (state == CLOSING) {
+            ui.drawMessage("Closing Window...",0,30);
+            ui.drawMessage("Motor Turning CW", 0, 45);
+        }
+        else if (state == CALIBRATED) {
+            ui.drawMessage("Calibrating Complete!",0,30);
+            ui.drawMessage("Press to return", 0, 60);
         }
     }
 
@@ -56,8 +65,8 @@ public:
                 DisplayManager::getInstance().clearBuffer();
                 draw();
                 DisplayManager::getInstance().sendBuffer();
-                // calibration setup
-                TMC2209::getInstance().startCalibrationRotation(1, 8);
+                // calibration setup NEG OPENS WINDOW
+                TMC2209::getInstance().startCalibrationRotation(-1, 12);
 
                 // routine
                 while (state == CALIBRATING) {
@@ -68,24 +77,36 @@ public:
                     Encoder::getInstance().update();
                     if (Encoder::getInstance().isButtonPressed()) {
                         TMC2209::getInstance().stopCalibrationRotation();
-                        state = ASK_CONFIRM;
+                        state = CLOSING;
+                        DisplayManager::getInstance().clearBuffer();
+                        draw();
+                        DisplayManager::getInstance().sendBuffer();
+                        WeatherControl::getInstance().saveRotations(TMC2209::getInstance().stepsToRotations(TMC2209::getInstance().calibrationSteps));
+                        TMC2209::getInstance().startRotation(WeatherControl::getInstance().loadRotations(), 12);
+                        while(TMC2209::getInstance().rotating) {
+                            TMC2209::getInstance().updateRotation();
+                        }
+                        WeatherControl::getInstance().saveWindowState(false);
+                        state = CALIBRATED;
                         return;
                     }
                 }
             } else {
                 changeScreen(0);
             }
-        } else if(state == CALIBRATING) {
-            TMC2209::getInstance().stopCalibrationRotation();
+        } 
+        else if(state == CALIBRATED) {
             state = ASK_CONFIRM;
-            changeScreen(0); 
+            changeScreen(0);
         }
     }
 
 private:
     enum ScreenState {
         ASK_CONFIRM,
-        CALIBRATING
+        CALIBRATING,
+        CLOSING,
+        CALIBRATED
     };
 
     ScreenState state;

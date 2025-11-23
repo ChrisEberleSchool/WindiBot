@@ -1,5 +1,6 @@
 #include "components/TMC2209.h"
 
+HardwareSerial TMCSerial(2);
 /**
  * @brief Initialize the TMC2209 stepper driver (UART mode + pin setup).
  *
@@ -16,25 +17,30 @@ void TMC2209::setupTMC2209() {
     pinMode(TMC_EN_PIN, OUTPUT);
     pinMode(TMC_STP_PIN, OUTPUT);
     pinMode(TMC_DIR_PIN, OUTPUT);
-    digitalWrite(TMC_EN_PIN, HIGH); 
+    enableMotor(false);
 
-    // Begin listening UART
-    Serial2.begin(115200, SERIAL_8N1, TMC_UART_PIN, TMC_UART_PIN);
+    TMCSerial.begin(115200, SERIAL_8N1, TMC_UART_PIN, TMC_UART_PIN); 
+    pinMode(TMC_UART_PIN, INPUT_PULLUP);
 
-    // Populate driver reference
-    driver = new TMC2209Stepper(&Serial2, R_SENSE, DRIVER_ADDRESS);
+    driver = new TMC2209Stepper(&TMCSerial, DRIVER_ADDRESS, R_SENSE);
     driver->begin();
     driver->toff(5);
     driver->rms_current(RMS_CURRENT);
     driver->microsteps(microsteps);
+    driver->pdn_disable(true);
+    driver->I_scale_analog(false);
 
-    // Set & Test tmcConnected bool
-    tmcConnected = driver->test_connection() == 0;
-    if (tmcConnected) {
-        Serial.println("🟢 TMC2209 UART OK");
-    } else {
-        Serial.println("🔴 TMC2209 UART FAIL");
-    }
+    tmcConnected = false; 
+    uint32_t drvStatus = driver->DRV_STATUS(); 
+    if (drvStatus != 0xFFFFFFFF) tmcConnected = true; 
+
+    // Optional: print registers to confirm UART
+    Serial.println("TMC2209 setup complete:");
+    Serial.print("GCONF: 0x"); Serial.println(driver->GCONF(), HEX);
+    Serial.print("CHOPCONF: 0x"); Serial.println(driver->CHOPCONF(), HEX);
+    Serial.print("DRVSTATUS: 0x"); Serial.println(driver->DRV_STATUS(), HEX);
+    Serial.print("IHOLD_IRUN: 0x"); Serial.println(driver->IHOLD_IRUN(), HEX);
+    Serial.print("TCOOLTHRS: 0x"); Serial.println(driver->TCOOLTHRS(), HEX);
 }
 
 /**
@@ -72,20 +78,6 @@ void TMC2209::enableMotor(bool on) {
 }
 
 /**
- * @brief Generates a single step pulse with a blocking microsecond delay.
- *
- * This is a direct/manual low-level step interface.
- *
- * @param us_delay Microseconds to delay between pulses.
- * @return void
- */
-void TMC2209::stepPulse(int us_delay) {
-    digitalWrite(TMC_STP_PIN, HIGH);
-    digitalWrite(TMC_STP_PIN, LOW);
-    delayMicroseconds(us_delay);
-}
-
-/**
  * @brief Set the microstep resolution of the stepper driver.
  *
  * Valid values depend on hardware, but the common ones are:
@@ -99,52 +91,12 @@ void TMC2209::setMicrostepping(uint16_t ms) {
     if (tmcConnected) driver->microsteps(ms);
 }
 
-/**
- * @brief Rotate the stepper motor a fixed number of rotations at a set RPM.
- *
- * This function is *blocking*—it does not return until the motion completes.
- *
- * Motion behavior:
- * - Determines direction based on sign of @p rotations.
- * - Converts rotations → steps (includes microsteps + gear ratio).
- * - Computes step delay from requested RPM.
- * - Toggles DIR pin and outputs raw STEP pulses.
- *
- * @param rotations Desired shaft rotations (positive = CW, negative = CCW).
- * @param rpm       Motor speed in RPM (must be > 0).
- *
- * @return void
- */
-void TMC2209::rotate(float rotations, int rpm) {
-    // for whatever reason rotations are doubled so this is a quick hack fix
-    rotations /= 2.0f;
-    // Don't allow zero or negative RPM
-    if (rpm <= 0) return; 
-
-    // Determine direction and make rotations positive
-    bool dirCW = rotations >= 0;
-    if (!dirCW) rotations = -rotations;
-
-    digitalWrite(TMC_DIR_PIN, dirCW ? HIGH : LOW);
-
-    // Steps per one full motor revolution (with microsteps and gear)
+float TMC2209::stepsToRotations(long totalSteps) {
     long stepsPerRev = lround(STEPS_PER_REVOLUTION * microsteps * GEAR_RATIO);
-    long totalSteps = lround(rotations * stepsPerRev);
-    
-    // Steps per second to achieve requested RPM at the output shaft
-    float revolutionsPerSecond = rpm / 60.0f;
-    float stepsPerSecond = stepsPerRev * revolutionsPerSecond;
-    int stepDelayUs = lround(1000000.0f / stepsPerSecond);
-  
-    enableMotor(true);
-    for (long i = 0; i < totalSteps; i++) {
-        stepPulse(stepDelayUs);
-    }
-    enableMotor(false);
+    return (float)totalSteps / stepsPerRev;
 }
 
 void TMC2209::startRotation(float rotations, int rpm) {
-    rotations /= 2.0f;
     if (rpm <= 0) return;
 
     dirCW = rotations >= 0;
@@ -192,9 +144,8 @@ void TMC2209::startCalibrationRotation(int direction, int rpm) {
     calibrationDir = (direction > 0) ? 1 : -1;
     digitalWrite(TMC_DIR_PIN, (calibrationDir > 0) ? HIGH : LOW);
 
-    // Steps per second based on RPM
     long stepsPerRev = lround(STEPS_PER_REVOLUTION * microsteps * GEAR_RATIO);
-    float stepsPerSecond = stepsPerRev * (rpm / 60.0f);
+    float stepsPerSecond = (stepsPerRev * (rpm / 60.0f));
     stepDelayUs = lround(1000000.0f / stepsPerSecond);
 
     calibrationSteps = 0;
@@ -206,6 +157,8 @@ void TMC2209::startCalibrationRotation(int direction, int rpm) {
 
 long TMC2209::stopCalibrationRotation() {
     calibrating = false;
+    rotating = false;      // ensure state machine stops
+    stepsRemaining = 0;    // clear steps
     enableMotor(false);
-    return calibrationSteps; // total steps moved during calibration
+    return calibrationSteps;
 }

@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <TMCStepper.h>
 #include "../config/Pins.h"
+extern HardwareSerial TMCSerial;
 
 class TMC2209 {
 public:
@@ -24,8 +25,7 @@ public:
     long stopCalibrationRotation();
     void updateRotation();
 
-    // Blocking Operation Functions
-    void rotate(float rotations, int rpm);
+    float stepsToRotations(long totalSteps);
 
 
     // GETTERS
@@ -35,6 +35,11 @@ public:
 
     TMC2209(const TMC2209&) = delete;
     void operator=(const TMC2209&) = delete;
+
+    long calibrationSteps = 0;
+    // Non-blocking rotation state machine
+    bool rotating = false;
+    bool calibrating = false;
 private:
     TMC2209() = default;   // Only singleton constructor
     ~TMC2209() = default;  // prevent external destruction
@@ -42,7 +47,6 @@ private:
 
     // Private functions
     void enableMotor(bool on);
-    void stepPulse(int us_delay);
 
     // Private Const Vars
     static constexpr float R_SENSE = 0.11f;
@@ -51,22 +55,20 @@ private:
     // Private Vars
     int RMS_CURRENT = 900;
     float GEAR_RATIO = 5.18; 
-    int STEPS_PER_REVOLUTION = 200;
+    int STEPS_PER_REVOLUTION = 100;
     uint16_t microsteps = 16; 
 
     // UART status
     bool tmcConnected = false;
 
-    // Non-blocking rotation state machine
-    bool rotating = false;
+    
     bool dirCW = true;
     long stepsRemaining = 0;       
     int stepDelayUs = 0;           
     unsigned long nextStepTime = 0;
 
-    // Calibration tracking
-    bool calibrating = false;
-    long calibrationSteps = 0;
+
+    
     int calibrationDir = 1; // 1 = CW, -1 = CCW
 };
 

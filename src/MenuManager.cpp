@@ -1,10 +1,12 @@
 #include "MenuManager.h"
+
 #include "display/screens/MainMenuScreen.h"
 #include "display/screens/SensorScreen.h"
 #include "display/screens/WifiScreen.h"
 #include "display/screens/MemoryScreen.h"
 #include "display/screens/CalibrationScreen.h"
 #include "display/screens/LocationDataScreen.h"
+#include "display/screens/OperationScreen.h"
 
 #include "components/TempSensor.h"
 #include "WifiPortal.h"
@@ -16,11 +18,12 @@ MenuManager::MenuManager(Encoder& enc)
     : encoder(enc)
 {
     screens.push_back(new MainMenuScreen());       // index 0
-    screens.push_back(new SensorScreen());         // index 1
-    screens.push_back(new WifiScreen());           // index 2
-    screens.push_back(new CalibrationScreen());    // index 3
-    screens.push_back(new LocationDataScreen());   // index 4
-    screens.push_back(new MemoryScreen());         // index 5
+    screens.push_back(new OperationScreen());      // index 1
+    screens.push_back(new SensorScreen());         // index 2
+    screens.push_back(new WifiScreen());           // index 3
+    screens.push_back(new CalibrationScreen());    // index 4
+    screens.push_back(new LocationDataScreen());   // index 5
+    screens.push_back(new MemoryScreen());         // index 6
 
     // Install callbacks for screen change
     for (int i = 0; i < screens.size(); i++) {
