@@ -175,6 +175,8 @@ public:
             state = INIT;
             lastHandleTime = 0;
             prefTempValue = 20.0f;
+            // Close The Window before exiting
+            WeatherControl::getInstance().closeWindow();
             changeScreen(0);
         }
     }

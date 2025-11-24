@@ -54,8 +54,8 @@ bool WeatherAPI::isBadWeather() {
     String WeatherAPI::getWeatherDescription() const {
         switch (weatherCode) {
             // Clear
-            case 0:
-            case 1: return "Clear";
+            case 0: return "Clear Sky";
+            case 1: return "Mainly Clear";
             
             // Cloudy
             case 2: return "Partly cloudy";
@@ -66,18 +66,18 @@ bool WeatherAPI::isBadWeather() {
             case 48: return "Fog";
 
             // Drizzle
-            case 51:
-            case 53:
-            case 55: return "Drizzle";
+            case 51: return "Light Drizzle";
+            case 53: return "Moderate Drizzle";
+            case 55: return "Dense Drizzle";
 
             // Rain
             case 61: return "Slight Rain";
-            case 63: return "Rain";
+            case 63: return "Moderate Rain";
             case 65: return "Heavy Rain";
 
             // Freezing Rain
-            case 66:
-            case 67: return "Freezing Rain";
+            case 66: return "Light Freezing Rain";
+            case 67: return "Heavy Freezing Rain";
 
             // Snow
             case 71: return "Slight Snowfall";
@@ -86,14 +86,13 @@ bool WeatherAPI::isBadWeather() {
             case 77: return "Snow grains";
 
             // Rain Showers
-            case 80:
-            case 81:
-            case 82: return "Rain showers";
+            case 80: return "Slight Rain showers";
+            case 81: return "Moderate Rain showers";
+            case 82: return "Violent Rain showers";
 
             // Snow Showers
-            case 85:
-            case 86: return "Snow showers";
-
+            case 85: return "Slight Snow showers";
+            case 86: return "Heavy Snow showers";
             // Thunderstorm
             case 95: return "Thunderstorm";
             case 96:
