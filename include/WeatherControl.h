@@ -15,13 +15,10 @@ public:
         return instance;
     }
 
-    void handleOpenClose() {
-        // Update Weather API with new data
-        WeatherAPI::getInstance().update();
+    void handleOpenClose(float prefTemp) {
         // quickly grab vars
         bool windowState = loadWindowState();
         float rotations = loadRotations();
-        float prefTemp = loadPrefTemp();
         float curInsideTemp = TempSensor::getInstance().readTemperature();
         float curOutsideTemp = WeatherAPI::getInstance().getTemperature();
 
@@ -99,18 +96,6 @@ public:
 
 
     // persistent data
-    void savePrefTemp(float prefTemp) {
-        prefs.begin("calibration", false);
-        prefs.putFloat("prefTemp", prefTemp);
-        prefs.end();
-    }
-
-    float loadPrefTemp() {
-        prefs.begin("calibration", true);
-        float prefTemp = prefs.getFloat("prefTemp", 0);
-        prefs.end();
-        return prefTemp;
-    }
 
     void saveRotations(float rots) {
         prefs.begin("calibration", false);

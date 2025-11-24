@@ -13,6 +13,27 @@
 class OperationScreen : public IScreen {
 public:
     OperationScreen() : state(INIT), lastHandleTime(0), prefTempValue(0.0f) {}
+
+    void init() override {
+        // must be reset each time screen is shown
+        state = INIT;
+        lastHandleTime = 0;
+        prefTempValue = 20.0f;
+        needsRedraw = true;
+         
+        DisplayManager::getInstance().clearBuffer();
+        draw();
+        DisplayManager::getInstance().sendBuffer();
+
+        WeatherAPI::getInstance().update();
+        setWeatherState();  
+
+        // Check calibration status
+        if (WeatherControl::getInstance().loadRotations() <= 0.0f) 
+            state = NOT_CALIBRATED;
+        else 
+            state = SET_PREF_TEMP;
+    }
     
     void draw() override {
         UIHelper::getInstance().setFont(FontStyle::MenuBold);
@@ -21,16 +42,7 @@ public:
         
         switch(state) {
             case INIT: {
-                if (WeatherControl::getInstance().loadRotations() <= 0.0f) {
-                    UIHelper::getInstance().drawMessage("Please Calibrate Before Use", 0, 30);
-                    UIHelper::getInstance().drawMessage("Press To Return...", 0, 45);
-                    state = NOT_CALIBRATED;
-                } else if (WeatherControl::getInstance().loadPrefTemp() == 0.0f) {
-                    prefTempValue = 20.0f; // default starting value
-                    state = SET_PREF_TEMP;
-                } else {
-                    state = OPERATION;
-                }
+                UIHelper::getInstance().drawMessage("Loading...", 0, 40);
                 break;
             }
 
@@ -50,13 +62,23 @@ public:
 
             case OPERATION: {
                 UIHelper::getInstance().setFont(FontStyle::RetroTiny);
-                UIHelper::getInstance().drawMessage("System Operational", 0, 30);
+                UIHelper::getInstance().drawMessage("System Operational", 0, 20);
+                if(weatherState == RAINING) {
+                    UIHelper::getInstance().drawMessage("Staying closed (RAIN)", 0, 28);
+                } else if(weatherState == SNOWING) {
+                    UIHelper::getInstance().drawMessage("Staying closed (SNOW)", 0, 28);
+                } else {
+                    UIHelper::getInstance().drawMessage("Weather: Clear", 0, 28);
+                }
                 String msg = "Target Temp: " + String(prefTempValue, 1) + " C";
-                UIHelper::getInstance().drawMessage(msg.c_str(), 0, 40);
+                UIHelper::getInstance().drawMessage(msg.c_str(), 0, 36);
                 msg = "Indoor Temp: " + String(TempSensor::getInstance().readTemperature(), 1) + " C";
-                UIHelper::getInstance().drawMessage(msg.c_str(), 0, 50);
+                UIHelper::getInstance().drawMessage(msg.c_str(), 0, 44);
                 msg = "Outdoor Temp: " + String(WeatherAPI::getInstance().getTemperature(), 1) + " C";
-                UIHelper::getInstance().drawMessage(msg.c_str(), 0, 60);
+                UIHelper::getInstance().drawMessage(msg.c_str(), 0, 52);
+                if(isBlocking) {
+                    UIHelper::getInstance().drawMessage("Adjusting Window... Input BLOCKED", 0, 60);
+                }
                 break;
             }
         }
@@ -78,10 +100,38 @@ public:
             unsigned long intervalMs = static_cast<unsigned long>(handleIntervalMinutes * 60 * 1000UL);
 
             if (lastHandleTime == 0 || now - lastHandleTime >= intervalMs) {
-                WeatherControl::getInstance().handleOpenClose(); // blocking
+                WeatherAPI::getInstance().update();
+                setWeatherState();
+                // If raining/snowing, skip opening logic
+                if (weatherState == RAINING || weatherState == SNOWING) {
+                    needsRedraw = true;
+                    lastHandleTime = now;
+                    return;
+                }
+
+                isBlocking = true;
+                DisplayManager::getInstance().clearBuffer();
+                draw();
+                DisplayManager::getInstance().sendBuffer();
+
+                WeatherControl::getInstance().handleOpenClose(prefTempValue); // blocking
+
+                isBlocking = false;
                 lastHandleTime = now;
                 needsRedraw = true;
             }
+        }
+    }
+
+    void setWeatherState() {
+        if (WeatherAPI::getInstance().isRaining()) {
+            weatherState = RAINING;
+        } 
+        else if (WeatherAPI::getInstance().isSnowing()) {
+            weatherState = SNOWING;
+        } 
+        else {
+            weatherState = CLEAR;
         }
     }
 
@@ -95,21 +145,16 @@ public:
     }
 
     void onButtonPress() override {
-        if (state == NOT_CALIBRATED || state == INIT) {
-            state = INIT;
-            changeScreen(0);
-            WeatherControl::getInstance().savePrefTemp(0.0f);
-        }
-        else if( state == SET_PREF_TEMP ) {
-            WeatherControl::getInstance().savePrefTemp(prefTempValue);
+        needsRedraw = true;
+        if( state == SET_PREF_TEMP ){
             state = OPERATION;
         }
-        else if ( state == OPERATION) {
+        else if ( state == OPERATION || state == NOT_CALIBRATED) {
             state = INIT;
+            lastHandleTime = 0;
+            prefTempValue = 20.0f;
             changeScreen(0);
-            WeatherControl::getInstance().savePrefTemp(0.0f);
         }
-        needsRedraw = true;
     }
 
 private:
@@ -120,10 +165,19 @@ private:
         SET_PREF_TEMP
     };
 
+    enum WeatherState {
+        CLEAR,
+        RAINING,
+        SNOWING
+    };
+    WeatherState weatherState = CLEAR;
+
     ScreenState state;
     unsigned long lastHandleTime;
     float handleIntervalMinutes = 0.5f; 
     float prefTempValue;
+
+    bool isBlocking = false;
 
     bool needsRedraw = true;
 };

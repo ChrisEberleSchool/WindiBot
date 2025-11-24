@@ -26,7 +26,6 @@ void setup()
     WeatherAPI::getInstance().fetchWeather(LocationAPI::getInstance().getLat(),LocationAPI::getInstance().getLon());
     TMC2209::getInstance().setupTMC2209();
     
-    
     // Create MenuManager now that DisplayManager is ready
     menu = new MenuManager(Encoder::getInstance());
     Serial.println("Setup complete.");
