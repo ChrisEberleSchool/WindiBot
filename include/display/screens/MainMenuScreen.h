@@ -15,7 +15,8 @@ public:
         menuItems[3] = "Calibration";
         menuItems[4] = "Location";
         menuItems[5] = "Memory";
-        itemCount = 6;
+        menuItems[6] = "Settings";
+        itemCount = 7;
     }
 
     void draw() override {
@@ -46,6 +47,7 @@ public:
             case 3: changeScreen(4); break; // calibration
             case 4: changeScreen(5); break; // location
             case 5: changeScreen(6); break; // memory
+            case 6: changeScreen(7); break; // settings
         }
     }
 

@@ -6,6 +6,7 @@
 #include <Arduino.h>
 #include "api/LocationAPI.h"
 #include "api/WeatherAPI.h"
+#include <SettingsManager.h>
 
 class LocationDataScreen : public IScreen {
 public:
@@ -14,21 +15,29 @@ public:
     void draw() override {
         UIHelper::getInstance().setFont(FontStyle::MenuBold);
         UIHelper::getInstance().drawHeader("Location Menu");
-        UIHelper::getInstance().setFont(FontStyle::MenuSmall);
+        UIHelper::getInstance().setFont(FontStyle::RetroTiny);
+
+        bool isMetric = SettingsManager::getInstance().loadUnits();
 
         // LOCATION
         String locString = "Location: " + LocationAPI::getInstance().getCity();
-        UIHelper::getInstance().drawMessage(locString.c_str(),0,30);
-        // TEMPERATURE with units
-        float temp = WeatherAPI::getInstance().getTemperature();
-        String tempStr = "Temp: " + String(temp, 1) + " C";   // °C shown
-        UIHelper::getInstance().drawMessage(tempStr.c_str(),0,45);
+        UIHelper::getInstance().drawMessage(locString.c_str(), 0, 28);
 
-        // WIND SPEED with units
-        float wind = WeatherAPI::getInstance().getWindSpeed();
-        String windStr = "Wind: " + String(wind, 1) + " m/s";  // m/s shown
-        UIHelper::getInstance().drawMessage(windStr.c_str(),0,60);
+        // WEATHER CODE
+        String weatherDesc = "Weather Status: " + WeatherAPI::getInstance().getWeatherDescription();
+        UIHelper::getInstance().drawMessage(weatherDesc.c_str(), 0, 36);
+
+        // TEMPERATURE
+        float temp = WeatherAPI::getInstance().getTemperature(isMetric);
+        String tempStr = "Temp: " + String(temp, 1) + (isMetric ? " C" : " F");
+        UIHelper::getInstance().drawMessage(tempStr.c_str(), 0, 44);
+
+        // WIND SPEED
+        float wind = WeatherAPI::getInstance().getWindSpeed(isMetric);
+        String windStr = "Wind: " + String(wind, 1) + (isMetric ? " m/s" : " mph");
+        UIHelper::getInstance().drawMessage(windStr.c_str(), 0, 52);
     }
+
 
     void onRotation(int rot) override {
     }   

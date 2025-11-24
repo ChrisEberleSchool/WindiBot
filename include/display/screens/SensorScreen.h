@@ -5,19 +5,26 @@
 #include <display/DisplayManager.h>
 #include <Arduino.h>
 #include <components/TempSensor.h>
+#include <SettingsManager.h>
 
 class SensorScreen : public IScreen {
 public:
     SensorScreen() = default;
     
     void draw() override {
-        UIHelper::getInstance().setFont(FontStyle::MenuBold);
-        UIHelper::getInstance().drawHeader("Sensor Menu");
-        UIHelper::getInstance().setFont(FontStyle::MenuSmall);
-        char buf[32];
-        sprintf(buf, "Inside Temp: %.1f C", temp);
-        UIHelper::getInstance().drawMessage(buf, 0, 30);
+       UIHelper& ui = UIHelper::getInstance();
+       ui.setFont(FontStyle::MenuBold);
+       ui.drawHeader("Sensor Menu");
+       ui.setFont(FontStyle::MenuSmall);
+
+       bool useMetric = SettingsManager::getInstance().loadUnits();
+       float displayTemp = TempSensor::getInstance().readTemperature(useMetric);
+
+       char buf[32];
+       sprintf(buf, "Inside Temp: %.1f %s", displayTemp, useMetric ? "C" : "F");
+       ui.drawMessage(buf, 0, 30);
     }
+
 
     void update() override {
         static unsigned long lastUpdate = 0;
@@ -28,7 +35,7 @@ public:
             lastUpdate = now;
 
             // Read the sensor here
-            temp = TempSensor::getInstance().readTemperature();
+            temp = TempSensor::getInstance().readTemperature(SettingsManager::getInstance().loadUnits());
 
             // Update display
             DisplayManager::getInstance().clearBuffer();

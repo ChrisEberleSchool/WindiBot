@@ -6,21 +6,27 @@
 class TempSensor {
 public:
     // Access the single instance
-    static TempSensor& getInstance() {
-        static TempSensor instance;
-        return instance;
-    }
+    static TempSensor& getInstance();
 
-    bool setup(bool metric = true);
-    float readTemperature();
+    // Initialize sensor; set default units
+    bool setup();
 
+    // Read temperature based on current unit setting
+    float readTemperature(bool metric);
+
+    // Read temperature explicitly in Celsius
+    float readCelsius();
+
+    // Read temperature explicitly in Fahrenheit
+    float readFahrenheit();
 private:
-    TempSensor() {}                            
+    TempSensor();                            
     TempSensor(const TempSensor&) = delete;    
     void operator=(const TempSensor&) = delete;
 
+    float cToF(float tempC);
+
     Adafruit_BMP085 bmp;
-    bool useMetric = true;
 };
 
 #endif
