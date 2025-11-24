@@ -7,6 +7,7 @@
 #include <components/Encoder.h>
 #include <components/TempSensor.h>
 #include <api/WeatherAPI.h>
+#include <SettingsManager.h>
 
 class WeatherControl {
 public:
@@ -19,11 +20,11 @@ public:
         // quickly grab vars
         bool windowState = loadWindowState();
         float rotations = loadRotations();
-        float curInsideTemp = TempSensor::getInstance().readTemperature();
-        float curOutsideTemp = WeatherAPI::getInstance().getTemperature();
+        float curInsideTemp = TempSensor::getInstance().readTemperature(SettingsManager::getInstance().loadUnits());
+        float curOutsideTemp = WeatherAPI::getInstance().getTemperature(SettingsManager::getInstance().loadUnits());
 
-        // case 0: raining (CLOSE WINDOW & RETURN)
-        if(WeatherAPI::getInstance().isRaining()) {
+        // case 0: bad weather (CLOSE WINDOW & RETURN)
+        if(WeatherAPI::getInstance().isBadWeather()) {
             // Check if the window is closed
             closeWindow();
             return;

@@ -14,8 +14,12 @@ public:
         menuItems[2] = "Wifi";
         menuItems[3] = "Calibration";
         menuItems[4] = "Location";
-        menuItems[5] = "Memory";
+        menuItems[5] = "Settings";
         itemCount = 6;
+    }
+
+    void init() override {
+        needsRedraw = true;
     }
 
     void draw() override {
@@ -26,16 +30,20 @@ public:
     }
 
     void update() override {
+        if (!needsRedraw) return;
 
+        DisplayManager::getInstance().clearBuffer();
+        draw();
+        DisplayManager::getInstance().sendBuffer();
+
+        needsRedraw = false;
     }
 
     int getSelectedIndex() const { return selectedIndex; }
 
     void onRotation(int rot) override {
         moveSelection(rot);
-        DisplayManager::getInstance().clearBuffer();
-        draw();
-        DisplayManager::getInstance().sendBuffer();
+        needsRedraw = true;
     }
 
     void onButtonPress() override {
@@ -45,11 +53,13 @@ public:
             case 2: changeScreen(3); break; // wifi
             case 3: changeScreen(4); break; // calibration
             case 4: changeScreen(5); break; // location
-            case 5: changeScreen(6); break; // memory
+            case 5: changeScreen(7); break; // settings
         }
     }
 
 private:
+    bool needsRedraw = true;
+
     const char* menuItems[10] = {nullptr};
     int itemCount = 0;
     int selectedIndex = 0;

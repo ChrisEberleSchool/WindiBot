@@ -20,12 +20,19 @@ public:
     }
 
     // Getters
-    float getTemperature() { return temperature; }
-    float getWindSpeed() { return windSpeed; }
+    float getTemperature(bool isMetric = true) const {
+        return isMetric ? temperature : cToF(temperature);
+    }
+
+    float getWindSpeed(bool isMetric = true) const {
+        return isMetric ? windSpeed : mpsToMph(windSpeed);
+    }
     int getWeatherCode() { return weatherCode; }
 
-    bool isRaining();
-    bool isSnowing();
+    bool isBadWeather();
+
+    String getWeatherDescription() const;
+
 private:
     WeatherAPI() {}
     WeatherAPI(const WeatherAPI&) = delete;
@@ -35,6 +42,10 @@ private:
     float temperature = 0.0;
     float windSpeed = 0.0;
     int weatherCode = 0;
+
+    // Helpers
+    float cToF(float tempC) const { return tempC * 9.0 / 5.0 + 32.0; }
+    float mpsToMph(float speedMps) const { return speedMps * 2.23694f; }
 };
 
 #endif

@@ -9,6 +9,10 @@
 class WifiScreen : public IScreen {
 public:
     WifiScreen() = default;
+
+    void init() override {
+        needsRedraw = true;
+    }
     
     void draw() override {
         UIHelper::getInstance().setFont(FontStyle::MenuBold);
@@ -35,7 +39,13 @@ public:
     }
 
     void update() override {
-        
+        if (!needsRedraw) return
+
+        DisplayManager::getInstance().clearBuffer();
+        draw();
+        DisplayManager::getInstance().sendBuffer();
+
+        needsRedraw = false;
     }
 
     void onRotation(int rot) override {
@@ -45,6 +55,7 @@ public:
         changeScreen(0); 
     }
 private:
+    bool needsRedraw = true;
 };
 
 #endif

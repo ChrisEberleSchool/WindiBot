@@ -8,6 +8,10 @@
 class MemoryScreen : public IScreen {
 public:
     MemoryScreen() = default;
+
+    void init() override {
+        needsRedraw = true;
+    }
     
     void draw() override {
         UIHelper::getInstance().setFont(FontStyle::MenuBold);
@@ -26,12 +30,25 @@ public:
         UIHelper::getInstance().drawMessage(buf, 0, 40);
     }
 
+    void update() override {
+        if (!needsRedraw) return;
+
+        DisplayManager::getInstance().clearBuffer();
+        draw();
+        DisplayManager::getInstance().sendBuffer();
+
+        needsRedraw = false;
+    }
+
     void onRotation(int rot) override {
     }   
 
     void onButtonPress() override {
-        changeScreen(0); 
+        changeScreen(7); 
     }
+private:
+    bool needsRedraw = true;
+
 };
 
 #endif

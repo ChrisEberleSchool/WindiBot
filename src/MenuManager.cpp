@@ -7,6 +7,7 @@
 #include "display/screens/CalibrationScreen.h"
 #include "display/screens/LocationDataScreen.h"
 #include "display/screens/OperationScreen.h"
+#include "display/screens/SettingScreen.h"
 
 #include "components/TempSensor.h"
 #include "WifiPortal.h"
@@ -24,6 +25,7 @@ MenuManager::MenuManager(Encoder& enc)
     screens.push_back(new CalibrationScreen());    // index 4
     screens.push_back(new LocationDataScreen());   // index 5
     screens.push_back(new MemoryScreen());         // index 6
+    screens.push_back(new SettingScreen());        // index 7
 
     // Install callbacks for screen change
     for (int i = 0; i < screens.size(); i++) {
@@ -67,5 +69,5 @@ void MenuManager::handleButtonPress() {
 void MenuManager::showScreen(int index) {
     currentIndex = index;
     screens[currentIndex]->init();
-    DisplayManager::getInstance().changeScreens(screens[currentIndex]);
+    DisplayManager::getInstance().clearBuffer();
 }
