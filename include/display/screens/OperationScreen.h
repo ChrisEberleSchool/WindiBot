@@ -62,22 +62,22 @@ public:
 
             case OPERATION: {
                 UIHelper::getInstance().setFont(FontStyle::RetroTiny);
-                UIHelper::getInstance().drawMessage("System Operational", 0, 28);
+                UIHelper::getInstance().drawMessage("System Operational", 0, 20);
                 if(weatherState == RAINING) {
-                    UIHelper::getInstance().drawMessage("Staying closed (RAIN)", 0, 36);
+                    UIHelper::getInstance().drawMessage("Staying closed (RAIN)", 0, 28);
                 } else if(weatherState == SNOWING) {
-                    UIHelper::getInstance().drawMessage("Staying closed (SNOW)", 0, 36);
+                    UIHelper::getInstance().drawMessage("Staying closed (SNOW)", 0, 28);
                 } else {
-                    UIHelper::getInstance().drawMessage("Weather: Clear", 0, 36);
+                    UIHelper::getInstance().drawMessage("Weather: Clear", 0, 28);
                 }
                 String msg = "Target Temp: " + String(prefTempValue, 1) + " C";
-                UIHelper::getInstance().drawMessage(msg.c_str(), 0, 44);
+                UIHelper::getInstance().drawMessage(msg.c_str(), 0, 36);
                 msg = "Indoor Temp: " + String(TempSensor::getInstance().readTemperature(), 1) + " C";
-                UIHelper::getInstance().drawMessage(msg.c_str(), 0, 52);
+                UIHelper::getInstance().drawMessage(msg.c_str(), 0, 44);
                 msg = "Outdoor Temp: " + String(WeatherAPI::getInstance().getTemperature(), 1) + " C";
-                UIHelper::getInstance().drawMessage(msg.c_str(), 0, 60);
+                UIHelper::getInstance().drawMessage(msg.c_str(), 0, 52);
                 if(isBlocking) {
-                    UIHelper::getInstance().drawMessage("Adjusting Window... Input BLOCKED", 0, 68);
+                    UIHelper::getInstance().drawMessage("Adjusting Window... Input BLOCKED", 0, 60);
                 }
                 break;
             }
