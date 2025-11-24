@@ -25,6 +25,7 @@ public:
     int getWeatherCode() { return weatherCode; }
 
     bool isRaining();
+    bool isSnowing();
 private:
     WeatherAPI() {}
     WeatherAPI(const WeatherAPI&) = delete;

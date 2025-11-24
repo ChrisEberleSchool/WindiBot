@@ -7,7 +7,7 @@ class IScreen {
 public:
     virtual ~IScreen() = default;
 
-
+    virtual void init() {};
     virtual void draw() = 0;
     virtual void update() {}
 
