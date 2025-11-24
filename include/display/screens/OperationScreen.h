@@ -76,7 +76,11 @@ public:
     void drawOperationStatus() {
         UIHelper& ui = UIHelper::getInstance();
         ui.setFont(FontStyle::RetroTiny);
-        ui.drawMessage("System Operational", 0, 28);
+
+        bool isOpen = WeatherControl::getInstance().loadWindowState();
+        String windowStatus = "Window Status: " + String(isOpen ? "OPEN" : "CLOSED");
+
+        ui.drawMessage(windowStatus.c_str(), 0, 24);
 
         bool weatherGuard = SettingsManager::getInstance().loadWeatherGuard();
         bool useMetric = SettingsManager::getInstance().loadUnits();
@@ -85,7 +89,7 @@ public:
         String weatherDesc = WeatherAPI::getInstance().getWeatherDescription();
         String weatherMsg;
         if (WeatherAPI::getInstance().isBadWeather() && weatherGuard) {
-            weatherMsg = "Weather Guard ON - Window Closed (" + weatherDesc + ")";
+            weatherMsg = "WEATHER GUARDED: (" + weatherDesc + ")";
         } else {
             weatherMsg = "Weather: " + weatherDesc;
         }
