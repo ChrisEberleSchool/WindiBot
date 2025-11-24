@@ -26,6 +26,8 @@ public:
     // Draw a header/title
     void drawHeader(const char* title);
 
+    void render();
+
 private:
     UIHelper() {}                          
     UIHelper(const UIHelper&) = delete;        

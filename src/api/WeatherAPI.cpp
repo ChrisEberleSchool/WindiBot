@@ -34,3 +34,16 @@ bool WeatherAPI::fetchWeather(float lat, float lon) {
 
     return true;
 }
+
+bool WeatherAPI::isRaining() {
+    switch (weatherCode) {
+        case 51: case 53: case 55:  // drizzle
+        case 61: case 63: case 65:  // rain
+        case 66: case 67:           // freezing rain
+        case 80: case 81: case 82:  // rain showers
+        case 95: case 96: case 99:  // thunderstorm
+            return true;
+        default:
+            return false;
+    }
+}

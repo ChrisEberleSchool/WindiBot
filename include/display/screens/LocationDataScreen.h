@@ -29,6 +29,14 @@ public:
         String windStr = "Wind: " + String(wind, 1) + " m/s";  // m/s shown
         UIHelper::getInstance().drawMessage(windStr.c_str(),0,60);
     }
+
+    void onRotation(int rot) override {
+    }   
+
+    void onButtonPress() override {
+        changeScreen(0); 
+    }
+
 };
 
 #endif

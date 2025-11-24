@@ -25,6 +25,13 @@ public:
         sprintf(buf, "Flash: %d / %d KB", sketchSize / 1024, flashSize / 1024);
         UIHelper::getInstance().drawMessage(buf, 0, 40);
     }
+
+    void onRotation(int rot) override {
+    }   
+
+    void onButtonPress() override {
+        changeScreen(0); 
+    }
 };
 
 #endif
