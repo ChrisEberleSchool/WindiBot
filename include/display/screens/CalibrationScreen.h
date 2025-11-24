@@ -13,6 +13,10 @@ class CalibrationScreen : public IScreen {
 public:
     CalibrationScreen() : state(ASK_CONFIRM), selectedIndex(0){}
     UIHelper& ui = UIHelper::getInstance();
+
+    void init() override {
+        needsRedraw = true;
+    }
     
     void draw() override {
         ui.setFont(FontStyle::MenuBold);
@@ -27,40 +31,41 @@ public:
         }
         else if (state == CALIBRATING) {
             ui.drawMessage("Calibrating...",0,30);
-            ui.drawMessage("Motor Turning CCW", 0, 45);
+            ui.drawMessage("Motor Opening Window", 0, 45);
             ui.drawMessage("Press to stop", 0, 60);
         }
         else if (state == CLOSING) {
-            ui.drawMessage("Closing Window...",0,30);
-            ui.drawMessage("Motor Turning CW", 0, 45);
+            ui.drawMessage("Calibration Complete!",0,30);
+            ui.drawMessage("Motor Closing Window", 0, 45);
         }
         else if (state == CALIBRATED) {
-            ui.drawMessage("Calibrating Complete!",0,30);
+            ui.drawMessage("Calibration Complete!",0,30);
             ui.drawMessage("Press to return", 0, 60);
         }
     }
 
     void update() override {
+        if (!needsRedraw) return;
+
         DisplayManager::getInstance().clearBuffer();
         draw();
         DisplayManager::getInstance().sendBuffer();
+
+        needsRedraw = false;
     }
 
     void onRotation(int rot) override {
-        if (state == ASK_CONFIRM) {
-            selectedIndex -= rot; 
-            if (selectedIndex < 0) selectedIndex = 0;
-            if (selectedIndex > 1) selectedIndex = 1;
-            DisplayManager::getInstance().clearBuffer();
-            draw();
-            DisplayManager::getInstance().sendBuffer();
+        if (state == ASK_CONFIRM && rot != 0) {
+            selectedIndex = constrain(selectedIndex - rot, 0, 1);
+            needsRedraw = true;
         }
-    }   
+    }
 
     void onButtonPress() override {
         if(state == ASK_CONFIRM) {
             if(selectedIndex == 0) { // Yes
                 state = CALIBRATING;
+                needsRedraw = true;
                 // Draw Calibration Prompt
                 DisplayManager::getInstance().clearBuffer();
                 draw();
@@ -88,6 +93,7 @@ public:
                         }
                         WeatherControl::getInstance().saveWindowState(false);
                         state = CALIBRATED;
+                        needsRedraw = true;
                         return;
                     }
                 }
@@ -112,6 +118,8 @@ private:
     ScreenState state;
     // For Yes/No list
     int selectedIndex;
+
+    bool needsRedraw = true;
 };
 
 #endif

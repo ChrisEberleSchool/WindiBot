@@ -1,10 +1,24 @@
 #include "api/LocationAPI.h"
 
+/**
+ * Fetch location data based on IP address.
+ * Returns true if successful, false otherwise.
+ * Populates city, region, country, lat, lon members.
+ * Uses ip-api.com for geolocation.
+ * Requires WiFi connection.
+ * Uses ArduinoJson for JSON parsing.
+ * 
+ * Example usage:
+ * LocationAPI& loc = LocationAPI::getInstance();
+ * if(loc.fetchLocation()) {
+ *   Serial.println(loc.getCity());
+ * }
+ */
 bool LocationAPI::fetchLocation() {
     if (WiFi.status() != WL_CONNECTED) return false;
 
     HTTPClient http;
-    http.begin("http://ip-api.com/json");  // Free geolocation API
+    http.begin("http://ip-api.com/json"); 
     int httpCode = http.GET();
 
     if (httpCode != 200) {

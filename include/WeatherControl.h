@@ -7,6 +7,7 @@
 #include <components/Encoder.h>
 #include <components/TempSensor.h>
 #include <api/WeatherAPI.h>
+#include <SettingsManager.h>
 
 class WeatherControl {
 public:
@@ -15,18 +16,15 @@ public:
         return instance;
     }
 
-    void handleOpenClose() {
-        // Update Weather API with new data
-        WeatherAPI::getInstance().update();
+    void handleOpenClose(float prefTemp) {
         // quickly grab vars
         bool windowState = loadWindowState();
         float rotations = loadRotations();
-        float prefTemp = loadPrefTemp();
-        float curInsideTemp = TempSensor::getInstance().readTemperature();
-        float curOutsideTemp = WeatherAPI::getInstance().getTemperature();
+        float curInsideTemp = TempSensor::getInstance().readTemperature(SettingsManager::getInstance().loadUnits());
+        float curOutsideTemp = WeatherAPI::getInstance().getTemperature(SettingsManager::getInstance().loadUnits());
 
-        // case 0: raining (CLOSE WINDOW & RETURN)
-        if(WeatherAPI::getInstance().isRaining()) {
+        // case 0: bad weather (CLOSE WINDOW & RETURN)
+        if(WeatherAPI::getInstance().isBadWeather()) {
             // Check if the window is closed
             closeWindow();
             return;
@@ -99,18 +97,6 @@ public:
 
 
     // persistent data
-    void savePrefTemp(float prefTemp) {
-        prefs.begin("calibration", false);
-        prefs.putFloat("prefTemp", prefTemp);
-        prefs.end();
-    }
-
-    float loadPrefTemp() {
-        prefs.begin("calibration", true);
-        float prefTemp = prefs.getFloat("prefTemp", 0);
-        prefs.end();
-        return prefTemp;
-    }
 
     void saveRotations(float rots) {
         prefs.begin("calibration", false);
