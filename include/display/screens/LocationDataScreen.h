@@ -11,6 +11,10 @@
 class LocationDataScreen : public IScreen {
 public:
     LocationDataScreen() = default;
+
+    void init() override {
+        needsRedraw = true;
+    }
     
     void draw() override {
         UIHelper::getInstance().setFont(FontStyle::MenuBold);
@@ -38,14 +42,26 @@ public:
         UIHelper::getInstance().drawMessage(windStr.c_str(), 0, 52);
     }
 
+    void update() override {
+        if (!needsRedraw) return;
+
+        DisplayManager::getInstance().clearBuffer();
+        draw();
+        DisplayManager::getInstance().sendBuffer();
+
+        needsRedraw = false;
+    }
+
 
     void onRotation(int rot) override {
+        needsRedraw = true;
     }   
 
     void onButtonPress() override {
         changeScreen(0); 
     }
-
+private:
+    bool needsRedraw = true;
 };
 
 #endif

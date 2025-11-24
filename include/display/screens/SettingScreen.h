@@ -15,6 +15,10 @@ class SettingScreen : public IScreen {
 public:
     SettingScreen() {}
     UIHelper& ui = UIHelper::getInstance();
+
+    void init() override {
+        needsRedraw = true;
+    }
     
     void draw() override {
         ui.setFont(FontStyle::MenuBold);
@@ -40,15 +44,18 @@ public:
         static char buf1[20];
         static char buf2[20];
         static char buf3[20];
+        static char buf4[20];
 
-        sprintf(buf1, "Weather Guard: %s", SettingsManager::getInstance().loadWeatherGuard() ? "Yes" : "No");
-        sprintf(buf2, "Offline Mode: %s", SettingsManager::getInstance().loadOfflineMode() ? "On" : "Off");
+        sprintf(buf1, "Weather Guard: %s", SettingsManager::getInstance().loadWeatherGuard() ? "ON" : "OFF");
+        sprintf(buf2, "Offline Mode: %s", SettingsManager::getInstance().loadOfflineMode() ? "ON" : "OFF");
         sprintf(buf3, "Units: %s", SettingsManager::getInstance().loadUnits() ? "MET" : "IMP");
+        sprintf(buf4, "Memory Info:");
         
 
         menuItems[1] = buf1;
         menuItems[2] = buf2;
         menuItems[3] = buf3;
+        menuItems[4] = buf4;
     }
 
 
@@ -76,12 +83,10 @@ public:
                 SettingsManager::getInstance().saveUnits(!SettingsManager::getInstance().loadUnits());
                 needsRedraw = true;
                 break;
+            case 4: // Memory Info
+                changeScreen(6);
+                break;
         }
-    }
-
-    void init() override {
-        needsRedraw = true;
-
     }
 
 private:
@@ -90,7 +95,7 @@ private:
     bool needsRedraw = true;
 
     const char* menuItems[10] = {nullptr};
-    int itemCount = 4;
+    int itemCount = 5;
     int selectedIndex = 0;
     int scrollOffset = 0;
 

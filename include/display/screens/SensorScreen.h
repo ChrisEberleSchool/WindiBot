@@ -10,6 +10,10 @@
 class SensorScreen : public IScreen {
 public:
     SensorScreen() = default;
+
+    void init() override {
+        needsRedraw = true;
+    }
     
     void draw() override {
        UIHelper& ui = UIHelper::getInstance();
@@ -27,6 +31,7 @@ public:
 
 
     void update() override {
+
         static unsigned long lastUpdate = 0;
         unsigned long now = millis();
 
@@ -52,6 +57,8 @@ public:
         changeScreen(0); 
     }
 private:
+    bool needsRedraw = true;
+
     float temp = -99.9f;
     int updateIntervalSeconds = 3;
 };

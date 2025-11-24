@@ -69,5 +69,5 @@ void MenuManager::handleButtonPress() {
 void MenuManager::showScreen(int index) {
     currentIndex = index;
     screens[currentIndex]->init();
-    DisplayManager::getInstance().changeScreens(screens[currentIndex]);
+    DisplayManager::getInstance().clearBuffer();
 }
