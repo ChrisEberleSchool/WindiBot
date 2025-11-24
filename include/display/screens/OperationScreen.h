@@ -75,7 +75,9 @@ public:
         // Handle open/close every 5 minutes in OPERATION mode
         if (state == OPERATION) {
             unsigned long now = millis();
-            if (now - lastHandleTime >= 0.5 * 60 * 1000UL) { // 5 minutes
+            unsigned long intervalMs = static_cast<unsigned long>(handleIntervalMinutes * 60 * 1000UL);
+
+            if (lastHandleTime == 0 || now - lastHandleTime >= intervalMs) {
                 WeatherControl::getInstance().handleOpenClose(); // blocking
                 lastHandleTime = now;
                 needsRedraw = true;
@@ -120,7 +122,8 @@ private:
 
     ScreenState state;
     unsigned long lastHandleTime;
-    float prefTempValue; // temporary value while user sets preferred temp
+    float handleIntervalMinutes = 0.5f; 
+    float prefTempValue;
 
     bool needsRedraw = true;
 };

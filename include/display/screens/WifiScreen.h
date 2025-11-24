@@ -34,6 +34,10 @@ public:
         UIHelper::getInstance().drawMessage(wifi.portalName,0,45);
     }
 
+    void update() override {
+        
+    }
+
     void onRotation(int rot) override {
     }   
 
