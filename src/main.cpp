@@ -29,8 +29,7 @@ void setup()
     
     // Create MenuManager now that DisplayManager is ready
     menu = new MenuManager(Encoder::getInstance());
-
-    menu->setup();
+    Serial.println("Setup complete.");
 }
 
 void loop() {

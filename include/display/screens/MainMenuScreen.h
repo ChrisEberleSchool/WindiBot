@@ -2,36 +2,58 @@
 #define MAIN_MENU_SCREEN_H
 
 #include <display/IScreen.h>
-#include <display/DisplayManager.h>
 #include <display/UIHelper.h>
-
 #include "FontManager.h"
 
 class MainMenuScreen : public IScreen {
 public:
     MainMenuScreen()
     {
-        menuItems[0] = "Sensors";
-        menuItems[1] = "Wifi";
-        menuItems[2] = "Calibration";
-        menuItems[3] = "Location";
-        menuItems[4] = "Memory";
-        itemCount = 5;
+        menuItems[0] = "Operation Mode";
+        menuItems[1] = "Sensors";
+        menuItems[2] = "Wifi";
+        menuItems[3] = "Calibration";
+        menuItems[4] = "Location";
+        menuItems[5] = "Memory";
+        itemCount = 6;
     }
 
     void draw() override {
         UIHelper::getInstance().setFont(FontStyle::MenuBold);
         UIHelper::getInstance().drawHeader("Main Menu");
-         UIHelper::getInstance().setFont(FontStyle::MenuSmall);
-        // 3 visible rows starting at scrollOffset
-        UIHelper::getInstance().drawList(menuItems, itemCount, selectedIndex,
-                    0,        // x
-                    30,       // y start
-                    14,       // line height
-                    scrollOffset, 
-                    3);       // visible count
+        UIHelper::getInstance().setFont(FontStyle::MenuSmall);
+        UIHelper::getInstance().drawList(menuItems,itemCount,selectedIndex,0,30,14,scrollOffset,3);
     }
 
+    void update() override {
+
+    }
+
+    int getSelectedIndex() const { return selectedIndex; }
+
+    void onRotation(int rot) override {
+        moveSelection(rot);
+        DisplayManager::getInstance().clearBuffer();
+        draw();
+        DisplayManager::getInstance().sendBuffer();
+    }
+
+    void onButtonPress() override {
+        switch(selectedIndex) {
+            case 0: changeScreen(1); break; // Operation Mode
+            case 1: changeScreen(2); break; // sensors
+            case 2: changeScreen(3); break; // wifi
+            case 3: changeScreen(4); break; // calibration
+            case 4: changeScreen(5); break; // location
+            case 5: changeScreen(6); break; // memory
+        }
+    }
+
+private:
+    const char* menuItems[10] = {nullptr};
+    int itemCount = 0;
+    int selectedIndex = 0;
+    int scrollOffset = 0;
 
     void moveSelection(int delta) {
         selectedIndex += delta;
@@ -53,14 +75,6 @@ public:
             scrollOffset = selectedIndex;
         }
     }
-
-    int getSelectedIndex() const { return selectedIndex; }
-
-private:
-    const char* menuItems[10] = {nullptr};
-    int itemCount = 0;
-    int selectedIndex = 0;
-    int scrollOffset = 0;
 };
 
 #endif

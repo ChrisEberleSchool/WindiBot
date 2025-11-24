@@ -1,10 +1,12 @@
 #include "MenuManager.h"
+
 #include "display/screens/MainMenuScreen.h"
 #include "display/screens/SensorScreen.h"
 #include "display/screens/WifiScreen.h"
 #include "display/screens/MemoryScreen.h"
 #include "display/screens/CalibrationScreen.h"
 #include "display/screens/LocationDataScreen.h"
+#include "display/screens/OperationScreen.h"
 
 #include "components/TempSensor.h"
 #include "WifiPortal.h"
@@ -13,64 +15,56 @@
 #include "api/WeatherAPI.h"
 
 MenuManager::MenuManager(Encoder& enc)
-    : encoder(enc), currentScreen(nullptr)
+    : encoder(enc)
 {
-    // Instantiate screens using singletons where needed
-    mainMenu           = new MainMenuScreen();
-    sensorScreen       = new SensorScreen();
-    wifiScreen         = new WifiScreen();
-    memoryScreen       = new MemoryScreen();
-    calibrationScreen  = new CalibrationScreen();
-    locationDataScreen = new LocationDataScreen();
+    screens.push_back(new MainMenuScreen());       // index 0
+    screens.push_back(new OperationScreen());      // index 1
+    screens.push_back(new SensorScreen());         // index 2
+    screens.push_back(new WifiScreen());           // index 3
+    screens.push_back(new CalibrationScreen());    // index 4
+    screens.push_back(new LocationDataScreen());   // index 5
+    screens.push_back(new MemoryScreen());         // index 6
 
-    // Start with main menu
-    showScreen(mainMenu);
-}
+    // Install callbacks for screen change
+    for (int i = 0; i < screens.size(); i++) {
+        screens[i]->setChangeCallback(
+            [this](int index) {
+                this->showScreen(index);
+            }
+        );
+    }
 
-void MenuManager::setup() {
-    showScreen(mainMenu);
+    showScreen(0);
 }
 
 void MenuManager::update() {
     // Connect to Wifi
     if (!WifiPortal::getInstance().isConnected()) {
-        wifiScreen->drawSetup();
+        static_cast<WifiScreen*>(screens[2])->drawSetup();
         LocationAPI::getInstance().fetchLocation();
         WeatherAPI::getInstance().fetchWeather(LocationAPI::getInstance().getLat(),LocationAPI::getInstance().getLon());
     }
+
     encoder.update();
     int rotation = encoder.getRotation();
     bool buttonPressed = encoder.isButtonPressed();
 
     if(rotation != 0) handleRotation(rotation);
     if(buttonPressed) handleButtonPress();
+
+    screens[currentIndex]->update();
 }
 
 void MenuManager::handleRotation(int rot) {
-    // Only main menu scrolls
-    if(currentScreen == mainMenu) {
-        mainMenu->moveSelection(rot);
-        showScreen(mainMenu);  // redraw with new selection
-    }
+    screens[currentIndex]->onRotation(rot);
 }
+
 
 void MenuManager::handleButtonPress() {
-    if(currentScreen == mainMenu) {
-        int selected = mainMenu->getSelectedIndex();
-        switch(selected) {
-            case 0: showScreen(sensorScreen); break;
-            case 1: showScreen(wifiScreen); break;
-            case 2: showScreen(calibrationScreen); break;
-            case 3: showScreen(locationDataScreen); break;
-            case 4: showScreen(memoryScreen); break;
-        }
-    } else {
-        // Any screen button press returns to main menu
-        showScreen(mainMenu);
-    }
+    screens[currentIndex]->onButtonPress();
 }
 
-void MenuManager::showScreen(IScreen* screen) {
-    currentScreen = screen;
-    DisplayManager::getInstance().changeScreens(currentScreen);
+void MenuManager::showScreen(int index) {
+    currentIndex = index;
+    DisplayManager::getInstance().changeScreens(screens[currentIndex]);
 }

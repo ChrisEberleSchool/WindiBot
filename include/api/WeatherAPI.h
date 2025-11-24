@@ -4,6 +4,7 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <api/LocationAPI.h>
 
 class WeatherAPI {
 public:
@@ -14,12 +15,16 @@ public:
 
     // Fetch weather from Open-Meteo using latitude & longitude
     bool fetchWeather(float lat, float lon);
+    void update() {
+        fetchWeather(LocationAPI::getInstance().getLat(), LocationAPI::getInstance().getLon());
+    }
 
     // Getters
     float getTemperature() { return temperature; }
     float getWindSpeed() { return windSpeed; }
     int getWeatherCode() { return weatherCode; }
 
+    bool isRaining();
 private:
     WeatherAPI() {}
     WeatherAPI(const WeatherAPI&) = delete;
